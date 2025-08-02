@@ -1,7 +1,7 @@
 const express = require('express');
 const { upload } = require('../middleware/upload');
 const { authenticateToken } = require('../middleware/auth');
-const { addFile, getAllFiles, getFilesByMdsNumber, getAllMdsNumbers } = require('../data/files');
+const { addFile, getAllFiles, getFilesByMdsNumber, getFilesByMdsId, getAllMdsNumbers, getAllMdsEntries, getMdsEntryById, getMdsEntryByNumber } = require('../data/files');
 const path = require('path');
 
 const router = express.Router();
@@ -93,6 +93,46 @@ router.get('/mds', authenticateToken, (req, res) => {
     });
   } catch (error) {
     console.error('Get MDS numbers error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/files/mds-entries - Get all MDS entries with IDs
+router.get('/mds-entries', authenticateToken, (req, res) => {
+  try {
+    const mdsEntries = getAllMdsEntries();
+    
+    res.json({
+      message: 'MDS entries retrieved successfully',
+      data: mdsEntries
+    });
+  } catch (error) {
+    console.error('Get MDS entries error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/files/mds-entries/:mdsId - Get files by MDS ID
+router.get('/mds-entries/:mdsId', authenticateToken, (req, res) => {
+  try {
+    const { mdsId } = req.params;
+    const mdsEntry = getMdsEntryById(mdsId);
+    
+    if (!mdsEntry) {
+      return res.status(404).json({ error: 'MDS entry not found' });
+    }
+    
+    const files = getFilesByMdsId(mdsId);
+    
+    res.json({
+      message: 'Files retrieved successfully',
+      data: {
+        mdsEntry: mdsEntry,
+        files: files
+      }
+    });
+  } catch (error) {
+    console.error('Get files by MDS ID error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
