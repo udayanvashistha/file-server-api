@@ -1,48 +1,26 @@
-# File Server API Documentation
+# 📚 Complete API Documentation
 
-## 📋 **Overview**
-A complete REST API for uploading, managing, and retrieving PDF files with MDS numbers and manual types. Includes JWT authentication and file management capabilities.
-
-**Base URL:** `http://localhost:3000`
-
----
+## 🌐 **Base URL**
+```
+https://file-server-api-production.up.railway.app/api/
+```
 
 ## 🔐 **Authentication**
-
-All protected endpoints require JWT token authentication in the header:
+All endpoints (except login) require JWT token in Authorization header:
 ```
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 ---
 
-## 📚 **API Endpoints**
+## 📋 **API Endpoints**
 
-### 1. **Health Check**
-**Endpoint:** `GET /health`
+### **1. Authentication**
 
-**Description:** Check if the server is running
+#### **POST /api/auth/login**
+Login to get JWT token.
 
-**URL:** `http://localhost:3000/health`
-
-**Headers:** None required
-
-**Response:**
-```json
-{
-  "message": "Server is running",
-  "timestamp": "2023-12-21T10:30:45.123Z"
-}
-```
-
----
-
-### 2. **Login**
-**Endpoint:** `POST /api/auth/login`
-
-**Description:** Authenticate user and get JWT token
-
-**URL:** `http://localhost:3000/api/auth/login`
+**URL:** `https://file-server-api-production.up.railway.app/api/auth/login`
 
 **Headers:**
 ```
@@ -57,11 +35,11 @@ Content-Type: application/json
 }
 ```
 
-**Response (200):**
+**Response:**
 ```json
 {
   "message": "Login successful",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1NDAyMDA1OSwiZXhwIjoxNzU0MTA2NDU5fQ.qCif2Nq1srTCti891K-8e...",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": 1,
     "username": "admin",
@@ -70,18 +48,18 @@ Content-Type: application/json
 }
 ```
 
-**Error Responses:**
-- **400 Bad Request:** Missing username or password
-- **401 Unauthorized:** Invalid credentials
+**Default Users:**
+- **Username:** `admin`, **Password:** `admin123`
+- **Username:** `user`, **Password:** `user123`
 
 ---
 
-### 3. **Upload PDF File**
-**Endpoint:** `POST /api/files/upload`
+### **2. File Management**
 
-**Description:** Upload a PDF file with MDS number and manual type
+#### **POST /api/files/upload**
+Upload PDF file with MDS number and manual type.
 
-**URL:** `http://localhost:3000/api/files/upload`
+**URL:** `https://file-server-api-production.up.railway.app/api/files/upload`
 
 **Headers:**
 ```
@@ -89,532 +67,380 @@ Authorization: Bearer YOUR_JWT_TOKEN
 Content-Type: multipart/form-data
 ```
 
-**Request Body (Form Data):**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `mdsNumber` | string | ✅ | MDS number identifier |
-| `manualType` | string | ✅ | Type of manual/document |
-| `pdf` | file | ✅ | PDF file (max 10MB) |
+**Form Data:**
+- `mdsNumber`: MDS number (string) - e.g., "MDS2025/07-test"
+- `manualType`: Manual type (string) - e.g., "spare_manual", "operation_manual"
+- `pdf`: PDF file
 
-**Response (201):**
+**Response:**
 ```json
 {
   "message": "File uploaded successfully",
   "data": {
-    "id": 1703123456789,
-    "mdsNumber": "MDS001",
-    "manualType": "User Manual",
-    "filename": "pdf-1703123456789-123456789.pdf",
-    "originalName": "document.pdf",
-    "uploadDate": "2023-12-21T10:30:45.123Z",
-    "fileUrl": "/uploads/pdf-1703123456789-123456789.pdf"
+    "id": 1754106940840,
+    "mdsId": "mds_1754106940840_abc123def",
+    "mdsNumber": "MDS2025/07-test",
+    "manualType": "spare_manual",
+    "filename": "pdf-1754106940815-733789080.pdf",
+    "originalName": "Spare Parts Manual.pdf",
+    "uploadDate": "2025-08-02T03:55:40.840Z",
+    "fileUrl": "/uploads/pdf-1754106940815-733789080.pdf"
   }
 }
 ```
 
-**Error Responses:**
-- **400 Bad Request:** Missing required fields or invalid file type
-- **401 Unauthorized:** Missing or invalid token
-- **413 Payload Too Large:** File size exceeds 10MB limit
+#### **GET /api/files**
+Get all uploaded files with MDS IDs.
 
----
-
-### 4. **Get All Files**
-**Endpoint:** `GET /api/files`
-
-**Description:** Retrieve all uploaded files
-
-**URL:** `http://localhost:3000/api/files`
+**URL:** `https://file-server-api-production.up.railway.app/api/files`
 
 **Headers:**
 ```
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
-**Response (200):**
+**Response:**
 ```json
 {
   "message": "Files retrieved successfully",
   "data": [
     {
-      "id": 1703123456789,
-      "mdsNumber": "MDS001",
-      "manualType": "User Manual",
-      "filename": "pdf-1703123456789-123456789.pdf",
-      "originalName": "document.pdf",
-      "uploadDate": "2023-12-21T10:30:45.123Z",
-      "fileUrl": "/uploads/pdf-1703123456789-123456789.pdf"
+      "id": 1754106940840,
+      "mdsId": "mds_1754106940840_abc123def",
+      "mdsNumber": "MDS2025/07-test",
+      "manualType": "spare_manual",
+      "filename": "pdf-1754106940815-733789080.pdf",
+      "originalName": "Spare Parts Manual.pdf",
+      "uploadDate": "2025-08-02T03:55:40.840Z",
+      "fileUrl": "/uploads/pdf-1754106940815-733789080.pdf"
     },
     {
-      "id": 1703123456790,
-      "mdsNumber": "MDS002",
-      "manualType": "Technical Manual",
-      "filename": "pdf-1703123456790-987654321.pdf",
-      "originalName": "tech-manual.pdf",
-      "uploadDate": "2023-12-21T10:35:12.456Z",
-      "fileUrl": "/uploads/pdf-1703123456790-987654321.pdf"
+      "id": 1754107000000,
+      "mdsId": "mds_1754106940840_abc123def",
+      "mdsNumber": "MDS2025/07-test",
+      "manualType": "operation_manual",
+      "filename": "pdf-1754107000000-123456789.pdf",
+      "originalName": "Operation Manual.pdf",
+      "uploadDate": "2025-08-02T04:00:00.000Z",
+      "fileUrl": "/uploads/pdf-1754107000000-123456789.pdf"
     }
   ]
 }
 ```
 
-**Error Responses:**
-- **401 Unauthorized:** Missing or invalid token
-- **403 Forbidden:** Invalid or expired token
-
 ---
 
-### 5. **Get Files by MDS Number**
-**Endpoint:** `GET /api/files/mds/{mdsNumber}`
+### **3. MDS Management**
 
-**Description:** Retrieve files filtered by MDS number
+#### **GET /api/files/mds**
+Get all unique MDS numbers.
 
-**URL:** `http://localhost:3000/api/files/mds/{mdsNumber}`
-
-**Parameters:**
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `mdsNumber` | string | ✅ | MDS number to filter by |
+**URL:** `https://file-server-api-production.up.railway.app/api/files/mds`
 
 **Headers:**
 ```
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
-**Response (200):**
+**Response:**
+```json
+{
+  "message": "MDS numbers retrieved successfully",
+  "data": ["MDS2025/07-test", "1234", "5678"]
+}
+```
+
+#### **GET /api/files/mds/:mdsNumber**
+Get files by specific MDS number.
+
+**URL:** `https://file-server-api-production.up.railway.app/api/files/mds/MDS2025%2F07-test`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+**Response:**
 ```json
 {
   "message": "Files retrieved successfully",
   "data": [
     {
-      "id": 1703123456789,
-      "mdsNumber": "MDS001",
-      "manualType": "User Manual",
-      "filename": "pdf-1703123456789-123456789.pdf",
-      "originalName": "document.pdf",
-      "uploadDate": "2023-12-21T10:30:45.123Z",
-      "fileUrl": "/uploads/pdf-1703123456789-123456789.pdf"
+      "id": 1754106940840,
+      "mdsId": "mds_1754106940840_abc123def",
+      "mdsNumber": "MDS2025/07-test",
+      "manualType": "spare_manual",
+      "filename": "pdf-1754106940815-733789080.pdf",
+      "originalName": "Spare Parts Manual.pdf",
+      "uploadDate": "2025-08-02T03:55:40.840Z",
+      "fileUrl": "/uploads/pdf-1754106940815-733789080.pdf"
+    },
+    {
+      "id": 1754107000000,
+      "mdsId": "mds_1754106940840_abc123def",
+      "mdsNumber": "MDS2025/07-test",
+      "manualType": "operation_manual",
+      "filename": "pdf-1754107000000-123456789.pdf",
+      "originalName": "Operation Manual.pdf",
+      "uploadDate": "2025-08-02T04:00:00.000Z",
+      "fileUrl": "/uploads/pdf-1754107000000-123456789.pdf"
     }
   ]
 }
 ```
 
-**Error Responses:**
-- **401 Unauthorized:** Missing or invalid token
-- **403 Forbidden:** Invalid or expired token
-
 ---
 
-### 6. **Download File**
-**Endpoint:** `GET /api/files/download/{filename}`
+### **4. MDS ID System (NEW)**
 
-**Description:** Download a specific PDF file
+#### **GET /api/files/mds-entries**
+Get all MDS entries with their unique IDs.
 
-**URL:** `http://localhost:3000/api/files/download/{filename}`
-
-**Parameters:**
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `filename` | string | ✅ | Filename to download |
+**URL:** `https://file-server-api-production.up.railway.app/api/files/mds-entries`
 
 **Headers:**
 ```
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
-**Response (200):**
-- **Content-Type:** `application/pdf`
-- **Content-Disposition:** `attachment; filename="original-name.pdf"`
-- **Body:** PDF file content
+**Response:**
+```json
+{
+  "message": "MDS entries retrieved successfully",
+  "data": [
+    {
+      "_id": "mds_1754106940840_abc123def",
+      "mdsNumber": "MDS2025/07-test",
+      "createdAt": "2025-08-02T03:55:40.840Z",
+      "fileCount": 2
+    },
+    {
+      "_id": "mds_1754107000000_xyz789ghi",
+      "mdsNumber": "1234",
+      "createdAt": "2025-08-02T04:00:00.000Z",
+      "fileCount": 1
+    }
+  ]
+}
+```
 
-**Error Responses:**
-- **401 Unauthorized:** Missing or invalid token
-- **403 Forbidden:** Invalid or expired token
-- **404 Not Found:** File not found
+#### **GET /api/files/mds-entries/:mdsId**
+Get files by MDS ID (clean URL, no special characters).
+
+**URL:** `https://file-server-api-production.up.railway.app/api/files/mds-entries/mds_1754106940840_abc123def`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+**Response:**
+```json
+{
+  "message": "Files retrieved successfully",
+  "data": {
+    "mdsEntry": {
+      "_id": "mds_1754106940840_abc123def",
+      "mdsNumber": "MDS2025/07-test",
+      "createdAt": "2025-08-02T03:55:40.840Z"
+    },
+    "files": [
+      {
+        "id": 1754106940840,
+        "mdsId": "mds_1754106940840_abc123def",
+        "mdsNumber": "MDS2025/07-test",
+        "manualType": "spare_manual",
+        "filename": "pdf-1754106940815-733789080.pdf",
+        "originalName": "Spare Parts Manual.pdf",
+        "uploadDate": "2025-08-02T03:55:40.840Z",
+        "fileUrl": "/uploads/pdf-1754106940815-733789080.pdf"
+      },
+      {
+        "id": 1754107000000,
+        "mdsId": "mds_1754106940840_abc123def",
+        "mdsNumber": "MDS2025/07-test",
+        "manualType": "operation_manual",
+        "filename": "pdf-1754107000000-123456789.pdf",
+        "originalName": "Operation Manual.pdf",
+        "uploadDate": "2025-08-02T04:00:00.000Z",
+        "fileUrl": "/uploads/pdf-1754107000000-123456789.pdf"
+      }
+    ]
+  }
+}
+```
 
 ---
 
-## 📱 **Mobile App Integration Examples**
+### **5. File Download**
 
-### **JavaScript/React Native**
+#### **GET /api/files/download/:filename**
+Download a specific file.
+
+**URL:** `https://file-server-api-production.up.railway.app/api/files/download/pdf-1754106940815-733789080.pdf`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+**Response:** File download
+
+---
+
+## 📱 **React Native Integration**
+
+### **Base Configuration:**
 ```javascript
-class FileServerAPI {
-  constructor(baseURL = 'http://localhost:3000') {
-    this.baseURL = baseURL;
-    this.token = null;
-  }
+export const Base_Url = 'https://file-server-api-production.up.railway.app/api/';
+```
 
-  // Login
-  async login(username, password) {
-    const response = await fetch(`${this.baseURL}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, password })
-    });
+### **API Functions:**
+```javascript
+import { getApi, postApi } from "../base.api";
 
-    if (response.ok) {
-      const data = await response.json();
-      this.token = data.token;
-      return data;
-    } else {
-      throw new Error('Login failed');
-    }
-  }
+// Login
+export const loginUser = async (username, password) => {
+    const response = await postApi('auth/login', { username, password });
+    return response;
+}
 
-  // Upload file
-  async uploadFile(mdsNumber, manualType, pdfFile) {
+// Upload file
+export const uploadFileApi = async (file, mdsNumber, manualType) => {
     const formData = new FormData();
+    formData.append('pdf', file);
     formData.append('mdsNumber', mdsNumber);
     formData.append('manualType', manualType);
-    formData.append('pdf', pdfFile);
-
-    const response = await fetch(`${this.baseURL}/api/files/upload`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.token}`
-      },
-      body: formData
+    
+    const response = await fetch(`${Base_Url}files/upload`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${await getToken()}`
+        },
+        body: formData
     });
-
-    if (response.ok) {
-      return await response.json();
-    } else {
-      throw new Error('Upload failed');
-    }
-  }
-
-  // Get files by MDS
-  async getFilesByMDS(mdsNumber) {
-    const response = await fetch(`${this.baseURL}/api/files/mds/${mdsNumber}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${this.token}`
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.data;
-    } else {
-      throw new Error('Failed to fetch files');
-    }
-  }
-
-  // Get PDF URL
-  getPdfUrl(fileUrl) {
-    return `${this.baseURL}${fileUrl}`;
-  }
-}
-
-// Usage
-const api = new FileServerAPI();
-await api.login('admin', 'admin123');
-const files = await api.getFilesByMDS('MDS001');
-files.forEach(file => {
-  console.log(`PDF URL: ${api.getPdfUrl(file.fileUrl)}`);
-});
-```
-
-### **Swift (iOS)**
-```swift
-class FileServerAPI {
-    private let baseURL = "http://localhost:3000"
-    private var token: String?
     
-    // Login
-    func login(username: String, password: String) async throws -> LoginResponse {
-        let url = URL(string: "\(baseURL)/api/auth/login")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body = ["username": username, "password": password]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw NetworkError.invalidResponse
-        }
-        
-        let loginResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-        self.token = loginResponse.token
-        return loginResponse
-    }
-    
-    // Get files by MDS
-    func getFilesByMDS(mdsNumber: String) async throws -> [FileData] {
-        guard let token = token else {
-            throw NetworkError.noToken
-        }
-        
-        let url = URL(string: "\(baseURL)/api/files/mds/\(mdsNumber)")!
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw NetworkError.invalidResponse
-        }
-        
-        let apiResponse = try JSONDecoder().decode(APIResponse.self, from: data)
-        return apiResponse.data
-    }
-    
-    // Get PDF URL
-    func getPdfUrl(fileUrl: String) -> URL {
-        return URL(string: "\(baseURL)\(fileUrl)")!
-    }
+    return response.json();
 }
 
-// Data models
-struct LoginResponse: Codable {
-    let message: String
-    let token: String
-    let user: User
+// Get all files
+export const getAllFiles = async() => {
+    const data = await getApi('files');
+    return data;
 }
 
-struct User: Codable {
-    let id: Int
-    let username: String
-    let role: String
+// Get all MDS numbers
+export const getAllMdsNumbers = async() => {
+    const data = await getApi('files/mds');
+    return data;
 }
 
-struct FileData: Codable {
-    let id: Int64
-    let mdsNumber: String
-    let manualType: String
-    let filename: String
-    let originalName: String
-    let uploadDate: String
-    let fileUrl: String
+// Get files by MDS number
+export const getFilesByMds = async(mdsNumber) => {
+    const encodedMds = encodeURIComponent(mdsNumber);
+    const data = await getApi(`files/mds/${encodedMds}`);
+    return data;
 }
 
-struct APIResponse: Codable {
-    let message: String
-    let data: [FileData]
+// Get all MDS entries with IDs
+export const getAllMdsEntries = async() => {
+    const data = await getApi('files/mds-entries');
+    return data;
 }
 
-enum NetworkError: Error {
-    case invalidResponse
-    case noToken
+// Get files by MDS ID
+export const getFilesByMdsId = async(mdsId) => {
+    const data = await getApi(`files/mds-entries/${mdsId}`);
+    return data;
 }
-```
-
-### **Kotlin (Android)**
-```kotlin
-class FileServerAPI(private val baseURL: String = "http://localhost:3000") {
-    private var token: String? = null
-    
-    // Login
-    suspend fun login(username: String, password: String): LoginResponse {
-        val client = OkHttpClient()
-        val json = JSONObject().apply {
-            put("username", username)
-            put("password", password)
-        }
-        
-        val request = Request.Builder()
-            .url("$baseURL/api/auth/login")
-            .addHeader("Content-Type", "application/json")
-            .post(json.toString().toRequestBody("application/json".toMediaType()))
-            .build()
-        
-        val response = client.newCall(request).execute()
-        
-        return if (response.isSuccessful) {
-            val responseBody = response.body?.string()
-            val loginResponse = Gson().fromJson(responseBody, LoginResponse::class.java)
-            token = loginResponse.token
-            loginResponse
-        } else {
-            throw Exception("Login failed")
-        }
-    }
-    
-    // Get files by MDS
-    suspend fun getFilesByMDS(mdsNumber: String): List<FileData> {
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url("$baseURL/api/files/mds/$mdsNumber")
-            .addHeader("Authorization", "Bearer $token")
-            .get()
-            .build()
-        
-        val response = client.newCall(request).execute()
-        
-        return if (response.isSuccessful) {
-            val responseBody = response.body?.string()
-            val apiResponse = Gson().fromJson(responseBody, APIResponse::class.java)
-            apiResponse.data
-        } else {
-            throw Exception("Failed to fetch files")
-        }
-    }
-    
-    // Get PDF URL
-    fun getPdfUrl(fileUrl: String): String {
-        return "$baseURL$fileUrl"
-    }
-}
-
-// Data classes
-data class LoginResponse(
-    val message: String,
-    val token: String,
-    val user: User
-)
-
-data class User(
-    val id: Int,
-    val username: String,
-    val role: String
-)
-
-data class FileData(
-    val id: Long,
-    val mdsNumber: String,
-    val manualType: String,
-    val filename: String,
-    val originalName: String,
-    val uploadDate: String,
-    val fileUrl: String
-)
-
-data class APIResponse(
-    val message: String,
-    val data: List<FileData>
-)
 ```
 
 ---
 
 ## 🧪 **Testing with cURL**
 
-### **1. Health Check**
+### **Login:**
 ```bash
-curl -X GET http://localhost:3000/health
-```
-
-### **2. Login**
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST https://file-server-api-production.up.railway.app/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "admin123"}'
 ```
 
-### **3. Upload File**
+### **Upload File:**
 ```bash
-curl -X POST http://localhost:3000/api/files/upload \
+curl -X POST https://file-server-api-production.up.railway.app/api/files/upload \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -F "mdsNumber=MDS001" \
-  -F "manualType=User Manual" \
+  -F "mdsNumber=MDS2025/07-test" \
+  -F "manualType=spare_manual" \
   -F "pdf=@/path/to/your/file.pdf"
 ```
 
-### **4. Get All Files**
+### **Get All Files:**
 ```bash
-curl -X GET http://localhost:3000/api/files \
+curl -X GET https://file-server-api-production.up.railway.app/api/files \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### **5. Get Files by MDS**
+### **Get All MDS Numbers:**
 ```bash
-curl -X GET http://localhost:3000/api/files/mds/MDS001 \
+curl -X GET https://file-server-api-production.up.railway.app/api/files/mds \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### **6. Download File**
+### **Get Files by MDS Number:**
 ```bash
-curl -X GET http://localhost:3000/api/files/download/filename.pdf \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -o downloaded-file.pdf
+curl -X GET "https://file-server-api-production.up.railway.app/api/files/mds/MDS2025%2F07-test" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### **Get All MDS Entries:**
+```bash
+curl -X GET https://file-server-api-production.up.railway.app/api/files/mds-entries \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### **Get Files by MDS ID:**
+```bash
+curl -X GET https://file-server-api-production.up.railway.app/api/files/mds-entries/mds_1754106940840_abc123def \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ---
 
-## 📊 **Response Field Descriptions**
+## 📋 **API Summary**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | number | Unique file identifier (timestamp) |
-| `mdsNumber` | string | MDS number associated with file |
-| `manualType` | string | Type of manual/document |
-| `filename` | string | Server-generated unique filename |
-| `originalName` | string | Original uploaded filename |
-| `uploadDate` | string | ISO 8601 timestamp of upload |
-| `fileUrl` | string | Relative URL to access PDF |
-
----
-
-## 🔒 **Security Features**
-
-- **JWT Authentication:** All file operations require valid token
-- **File Type Validation:** Only PDF files accepted
-- **File Size Limits:** Maximum 10MB per file
-- **CORS Enabled:** Cross-origin requests supported
-- **Input Validation:** All inputs validated and sanitized
+| Method | Endpoint | Description | Includes mdsId |
+|--------|----------|-------------|----------------|
+| POST | `/auth/login` | Login | ❌ |
+| POST | `/files/upload` | Upload PDF | ✅ |
+| GET | `/files` | Get all files | ✅ |
+| GET | `/files/mds` | Get all MDS numbers | ❌ |
+| GET | `/files/mds/:mdsNumber` | Get files by MDS number | ✅ |
+| GET | `/files/mds-entries` | Get all MDS entries with IDs | ✅ |
+| GET | `/files/mds-entries/:mdsId` | Get files by MDS ID | ✅ |
+| GET | `/files/download/:filename` | Download file | ❌ |
 
 ---
 
-## 📄 **PDF Access Methods**
+## 🔄 **What's New**
 
-### **1. Direct Browser Access (No Auth)**
-```
-http://localhost:3000/uploads/filename.pdf
-```
+### **MDS ID System:**
+- ✅ **Unique IDs**: Each MDS gets a unique `_id`
+- ✅ **Clean URLs**: No URL encoding needed for MDS IDs
+- ✅ **File Count**: Know how many files each MDS has
+- ✅ **Created Date**: Track when MDS was first added
 
-### **2. Download with Authentication**
-```
-GET /api/files/download/filename.pdf
-Authorization: Bearer TOKEN
-```
-
----
-
-## 🚀 **Quick Start**
-
-1. **Start Server:** `npm start`
-2. **Login:** `POST /api/auth/login`
-3. **Upload File:** `POST /api/files/upload`
-4. **Get Files:** `GET /api/files/mds/MDS001`
-5. **Access PDF:** Use `fileUrl` in browser or download API
+### **Enhanced Responses:**
+- ✅ **mdsId**: All file responses now include the MDS ID
+- ✅ **Better Organization**: Group files by MDS ID
+- ✅ **Cleaner URLs**: Use MDS IDs instead of special characters
 
 ---
 
-## 📝 **Error Codes**
+## 🚀 **Live Server Status**
 
-| Code | Description |
-|------|-------------|
-| 200 | Success |
-| 201 | Created (file uploaded) |
-| 400 | Bad Request (missing fields, invalid file) |
-| 401 | Unauthorized (missing/invalid token) |
-| 403 | Forbidden (expired token) |
-| 404 | Not Found (file not found) |
-| 413 | Payload Too Large (file too big) |
-| 500 | Internal Server Error |
+**Health Check:** `https://file-server-api-production.up.railway.app/health`
 
----
+**Status:** ✅ **ACTIVE**
 
-## 🔧 **Configuration**
-
-Edit `config.js` to customize:
-- **Port:** `PORT` (default: 3000)
-- **JWT Secret:** `JWT_SECRET`
-- **Upload Directory:** `UPLOAD_DIR` (default: 'uploads')
-
----
-
-## 📞 **Support**
-
-For issues or questions:
-- Check server logs for detailed error messages
-- Verify JWT token is valid and not expired
-- Ensure PDF files are valid and under 10MB limit
-- Confirm all required fields are provided in requests 
+**Last Updated:** August 2, 2025 

@@ -1,21 +1,21 @@
 const express = require('express');
 const { upload } = require('../middleware/upload');
 const { authenticateToken } = require('../middleware/auth');
-const { addFile, getAllFiles, getFilesByMdsNumber, getFilesByMdsId, getAllMdsNumbers, getAllMdsEntries, getMdsEntryById, getMdsEntryByNumber } = require('../data/files');
+const { addFile, getAllFiles, getFilesByMdsNumber, getFilesByMdsId, getAllMdsNumbers, getAllMdsEntries, getMdsEntryById, getMdsEntryByNumber, getAllCompanies, getCompanyById, getFilesByCompanyId, getMdsEntriesByCompanyId } = require('../data/files');
 const path = require('path');
 
 const router = express.Router();
 
-// POST /api/files/upload - Upload PDF file with MDS number and manual type
-router.post('/upload', authenticateToken, upload.single('pdf'), (req, res) => {
+// POST /api/files/upload - Upload PDF file with MDS number, company name and manual type
+router.post('/upload', authenticateToken, upload.single('pdf'), async (req, res) => {
   try {
-    const { mdsNumber, manualType } = req.body;
+    const { mdsNumber, companyName, manualType } = req.body;
     const file = req.file;
 
     // Validate required fields
-    if (!mdsNumber || !manualType) {
+    if (!mdsNumber || !companyName || !manualType) {
       return res.status(400).json({ 
-        error: 'MDS number and manual type are required' 
+        error: 'MDS number, company name and manual type are required' 
       });
     }
 
@@ -26,8 +26,9 @@ router.post('/upload', authenticateToken, upload.single('pdf'), (req, res) => {
     }
 
     // Save file metadata
-    const fileData = addFile(
+    const fileData = await addFile(
       mdsNumber,
+      companyName,
       manualType,
       file.filename,
       file.originalname
@@ -36,9 +37,11 @@ router.post('/upload', authenticateToken, upload.single('pdf'), (req, res) => {
     res.status(201).json({
       message: 'File uploaded successfully',
       data: {
-        id: fileData.id,
+        id: fileData._id,
         mdsId: fileData.mdsId,
         mdsNumber: fileData.mdsNumber,
+        companyId: fileData.companyId,
+        companyName: fileData.companyName,
         manualType: fileData.manualType,
         filename: fileData.filename,
         originalName: fileData.originalName,
@@ -54,9 +57,9 @@ router.post('/upload', authenticateToken, upload.single('pdf'), (req, res) => {
 });
 
 // GET /api/files - Get all files
-router.get('/', authenticateToken, (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
-    const files = getAllFiles();
+    const files = await getAllFiles();
     res.json({
       message: 'Files retrieved successfully',
       data: files
@@ -68,10 +71,10 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 // GET /api/files/mds/:mdsNumber - Get files by MDS number
-router.get('/mds/:mdsNumber', authenticateToken, (req, res) => {
+router.get('/mds/:mdsNumber', authenticateToken, async (req, res) => {
   try {
     const { mdsNumber } = req.params;
-    const files = getFilesByMdsNumber(mdsNumber);
+    const files = await getFilesByMdsNumber(mdsNumber);
     
     res.json({
       message: 'Files retrieved successfully',
@@ -84,9 +87,9 @@ router.get('/mds/:mdsNumber', authenticateToken, (req, res) => {
 });
 
 // GET /api/files/mds - Get all unique MDS numbers
-router.get('/mds', authenticateToken, (req, res) => {
+router.get('/mds', authenticateToken, async (req, res) => {
   try {
-    const mdsNumbers = getAllMdsNumbers();
+    const mdsNumbers = await getAllMdsNumbers();
     
     res.json({
       message: 'MDS numbers retrieved successfully',
@@ -99,9 +102,9 @@ router.get('/mds', authenticateToken, (req, res) => {
 });
 
 // GET /api/files/mds-entries - Get all MDS entries with IDs
-router.get('/mds-entries', authenticateToken, (req, res) => {
+router.get('/mds-entries', authenticateToken, async (req, res) => {
   try {
-    const mdsEntries = getAllMdsEntries();
+    const mdsEntries = await getAllMdsEntries();
     
     res.json({
       message: 'MDS entries retrieved successfully',
@@ -114,16 +117,16 @@ router.get('/mds-entries', authenticateToken, (req, res) => {
 });
 
 // GET /api/files/mds-entries/:mdsId - Get files by MDS ID
-router.get('/mds-entries/:mdsId', authenticateToken, (req, res) => {
+router.get('/mds-entries/:mdsId', authenticateToken, async (req, res) => {
   try {
     const { mdsId } = req.params;
-    const mdsEntry = getMdsEntryById(mdsId);
+    const mdsEntry = await getMdsEntryById(mdsId);
     
     if (!mdsEntry) {
       return res.status(404).json({ error: 'MDS entry not found' });
     }
     
-    const files = getFilesByMdsId(mdsId);
+    const files = await getFilesByMdsId(mdsId);
     
     res.json({
       message: 'Files retrieved successfully',
@@ -134,6 +137,91 @@ router.get('/mds-entries/:mdsId', authenticateToken, (req, res) => {
     });
   } catch (error) {
     console.error('Get files by MDS ID error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/files/companies - Get all companies with IDs
+router.get('/companies', authenticateToken, async (req, res) => {
+  try {
+    const companies = await getAllCompanies();
+    
+    res.json({
+      message: 'Companies retrieved successfully',
+      data: companies
+    });
+  } catch (error) {
+    console.error('Get companies error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/files/companies/:companyId - Get files by company ID
+router.get('/companies/:companyId', authenticateToken, async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const company = await getCompanyById(companyId);
+    
+    if (!company) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    
+    const files = await getFilesByCompanyId(companyId);
+    
+    res.json({
+      message: 'Files retrieved successfully',
+      data: {
+        company: company,
+        files: files
+      }
+    });
+  } catch (error) {
+    console.error('Get files by company ID error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/files/companies/:companyId/manuals/:manualType - Get files by company and manual type
+router.get('/companies/:companyId/manuals/:manualType', authenticateToken, async (req, res) => {
+  try {
+    const { companyId, manualType } = req.params;
+    const company = await getCompanyById(companyId);
+    
+    if (!company) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    
+    const files = await File.find({ 
+      companyId: companyId, 
+      manualType: manualType 
+    }).sort({ uploadDate: -1 });
+    
+    res.json({
+      message: 'Files retrieved successfully',
+      data: {
+        company: company,
+        manualType: manualType,
+        files: files
+      }
+    });
+  } catch (error) {
+    console.error('Get files by company and manual type error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/files/companies/:companyId/mds-entries - Get MDS entries for a specific company
+router.get('/companies/:companyId/mds-entries', authenticateToken, async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const result = await getMdsEntriesByCompanyId(companyId);
+    
+    res.json({
+      message: 'MDS entries retrieved successfully',
+      data: result
+    });
+  } catch (error) {
+    console.error('Get MDS entries by company error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -48,7 +48,13 @@ Create a `.env` file in the root directory:
 PORT=3000
 JWT_SECRET=your_jwt_secret_key_here
 UPLOAD_DIR=uploads
+MONGODB_URI=mongodb://localhost:27017/file-server
 ```
+
+**Note:** Replace `MONGODB_URI` with your MongoDB connection string. You can use:
+- **Local MongoDB**: `mongodb://localhost:27017/file-server`
+- **MongoDB Atlas**: `mongodb+srv://username:password@cluster.mongodb.net/file-server`
+- **Railway MongoDB**: Your Railway MongoDB connection string
 
 ## 🚀 Deployment Options
 
