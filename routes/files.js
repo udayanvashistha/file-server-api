@@ -37,6 +37,7 @@ router.post('/upload', authenticateToken, upload.single('pdf'), (req, res) => {
       message: 'File uploaded successfully',
       data: {
         id: fileData.id,
+        mdsId: fileData.mdsId,
         mdsNumber: fileData.mdsNumber,
         manualType: fileData.manualType,
         filename: fileData.filename,
