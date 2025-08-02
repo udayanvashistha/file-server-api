@@ -2,6 +2,7 @@ const express = require('express');
 const { upload } = require('../middleware/upload');
 const { authenticateToken } = require('../middleware/auth');
 const { addFile, getAllFiles, getFilesByMdsNumber, getFilesByMdsId, getAllMdsNumbers, getAllMdsEntries, getMdsEntryById, getMdsEntryByNumber, getAllCompanies, getCompanyById, getFilesByCompanyId, getMdsEntriesByCompanyId } = require('../data/files');
+const File = require('../models/File');
 const path = require('path');
 
 const router = express.Router();
