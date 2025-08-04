@@ -12,8 +12,6 @@ const app = express();
 
 // Connect to MongoDB
 mongoose.connect(config.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
 })
@@ -31,6 +29,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, config.UPLOAD_DIR)));
+
+// Serve static files from public directory (React build files)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -55,20 +56,18 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Handle React routing - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Route not found' });
+  }
+  
+  // Serve React app for all other routes
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server
 app.listen(config.PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${config.PORT}`);
-  console.log(`Health check: http://localhost:${config.PORT}/health`);
-  console.log(`Network access: http://192.168.0.12:${config.PORT}/health`);
-  console.log(`API Documentation:`);
-  console.log(`  POST /api/auth/login - Login with username and password`);
-  console.log(`  POST /api/files/upload - Upload PDF with MDS number and manual type`);
-  console.log(`  GET /api/files - Get all files`);
-  console.log(`  GET /api/files/mds/:mdsNumber - Get files by MDS number`);
-  console.log(`  GET /api/files/download/:filename - Download file`);
 }); 

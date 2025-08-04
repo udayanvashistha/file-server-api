@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 
-// In-memory user storage (in production, use a database)
+// user storage
 const users = [
   {
     id: 1,

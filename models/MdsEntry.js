@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const mdsEntrySchema = new mongoose.Schema({
   _id: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   mdsNumber: {
     type: String,
